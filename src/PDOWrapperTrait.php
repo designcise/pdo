@@ -13,6 +13,14 @@ use PDO;
 use PDOStatement;
 use RuntimeException;
 
+use function array_merge;
+use function array_values;
+use function gettype;
+use function is_numeric;
+use function is_string;
+use function is_scalar;
+use function is_bool;
+
 trait PDOWrapperTrait
 {
     /**
@@ -34,7 +42,7 @@ trait PDOWrapperTrait
      *
      * @see PdoInterface::beginTransaction()
      */
-    public function beginTransaction()
+    public function beginTransaction(): void
     {
         $this->connect();
         $this->getPdo()->beginTransaction();
@@ -351,8 +359,8 @@ trait PDOWrapperTrait
         // any bound variables (in the format ':placeholder' or '?')?
         if (
             empty($args) || (
-                ! preg_match('/\:[^\s]*/m', $query)
-                && ! preg_match('/[\(\=\<\>\,][\s]*\?[\s]*/m', $query)
+                ! preg_match('/:[^\s]*/m', $query)
+                && ! preg_match('/[(=<>,][\s]*\?[\s]*/m', $query)
             )
         ) {
             return false;

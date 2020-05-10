@@ -9,14 +9,14 @@
          processIsolation="false"
 >
     <testsuites>
-        <testsuite name="unit">
+        <testsuite name="designcise_pdo">
             <directory suffix="Test.php">./test</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>./src/</directory>
+            <directory suffix=".php">./src/</directory>
         </whitelist>
     </filter>
 </phpunit>

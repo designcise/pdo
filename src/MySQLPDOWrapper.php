@@ -12,6 +12,8 @@ namespace Designcise\PDO;
 use PDO;
 use PDOException;
 
+use function compact;
+
 class MySQLPDOWrapper implements PDOWrapperInterface
 {
     use PDOWrapperTrait;
@@ -51,7 +53,7 @@ class MySQLPDOWrapper implements PDOWrapperInterface
      *
      * @throws PDOException
      */
-    public function connect()
+    public function connect(): void
     {
         if ($this->db) {
             return;
@@ -70,7 +72,7 @@ class MySQLPDOWrapper implements PDOWrapperInterface
     /**
      * {@inheritdoc}
      */
-    public function disconnect()
+    public function disconnect(): void
     {
         $this->db = null;
     }

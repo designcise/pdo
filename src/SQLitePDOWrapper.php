@@ -43,7 +43,7 @@ class SQLitePDOWrapper implements PDOWrapperInterface
      *
      * @throws PDOException
      */
-    public function connect()
+    public function connect(): void
     {
         if ($this->db) {
             return;
