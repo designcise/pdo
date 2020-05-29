@@ -1,6 +1,5 @@
 {
     "name": "designcise/pdo",
-	"version": "0.0.1",
     "type": "library",
     "description": "Wrapper classes for PHP PDO",
     "license": "MIT",
