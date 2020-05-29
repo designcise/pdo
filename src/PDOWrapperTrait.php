@@ -66,7 +66,6 @@ trait PDOWrapperTrait
         $this->connect();
         
         $sth = $this->getPdo()->prepare($query);
-
         $bindVals = $this->queryBindValues($sth, $query, $args);
         
         $sth->execute((empty($args) || $bindVals) ? null : $args);
@@ -247,13 +246,10 @@ trait PDOWrapperTrait
         $this->connect();
         
         $sth = $this->getPdo()->prepare($query);
-        
-        if (! empty($args)) {
-            $this->queryBindValues($sth, $query, $args);
-        }
-        
-        $sth->execute($args ?: null);
-        
+        $bindVals = $this->queryBindValues($sth, $query, $args);
+
+        $sth->execute((empty($args) || $bindVals) ? null : $args);
+
         return $sth;
     }
     
