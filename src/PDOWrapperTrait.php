@@ -29,14 +29,14 @@ trait PDOWrapperTrait
      * @see PdoInterface::connect()
      */
     abstract public function connect();
-    
+
     /**
      * {@inheritdoc}
      *
      * @see PdoInterface::disconnect()
      */
     abstract public function disconnect();
-    
+
     /**
      * {@inheritdoc}
      *
@@ -47,7 +47,7 @@ trait PDOWrapperTrait
         $this->connect();
         $this->getPdo()->beginTransaction();
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -55,24 +55,18 @@ trait PDOWrapperTrait
      */
     public function transact(string $query, array $args = []): int
     {
-        // fix php bug: SQLSTATE[22P02]: Invalid text representation: 7 ERROR: invalid input syntax for type boolean: ""
-        // workaround: convert booleans to int
-        array_walk_recursive($args, function (&$value) {
-            if (is_bool($value)) {
-                $value = (int) $value;
-            }
-        });
-        
+        $args = $this->boolArgsToInt($args);
+
         $this->connect();
-        
+
         $sth = $this->getPdo()->prepare($query);
         $bindVals = $this->queryBindValues($sth, $query, $args);
-        
-        $sth->execute((empty($args) || $bindVals) ? null : $args);
-        
+
+        $sth->execute($bindVals ? null : $args);
+
         return $sth->rowCount();
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -83,7 +77,7 @@ trait PDOWrapperTrait
         $this->connect();
         $this->getPdo()->commit();
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -94,8 +88,8 @@ trait PDOWrapperTrait
         $this->connect();
         $this->getPdo()->rollBack();
     }
-    
-    
+
+
     /**
      * {@inheritdoc}
      *
@@ -108,7 +102,7 @@ trait PDOWrapperTrait
     ) {
         return $this->dbFetch($query, $args, '', $style);
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -121,7 +115,7 @@ trait PDOWrapperTrait
     ): array {
         return $this->dbFetch($query, $args, 'All', $style);
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -136,7 +130,7 @@ trait PDOWrapperTrait
             PDO::FETCH_COLUMN
         );
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -155,24 +149,24 @@ trait PDOWrapperTrait
         if (empty($class)) {
             throw new RuntimeException('Class name cannot be empty');
         }
-        
+
         // run query:
         // using fetch style as `PDO::FETCH_ASSOC` so supplied `$args` can
         // be merged with result set
         if (empty($result = $this->fetch($query, $values, PDO::FETCH_ASSOC))) {
             return false;
         }
-        
+
         // columns (in order of the result set) + additional `$args` supplied
         $newInstanceArgs = ($argsOverwrite)
             ? $args
             : array_values(array_merge($result, $args));
-        
+
         // copy values from db to class
         // @internal splat operator does not work with associative indexed arrays
         return new $class(...array_values($newInstanceArgs));
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -190,7 +184,7 @@ trait PDOWrapperTrait
         if (empty($class)) {
             throw new RuntimeException('Class name cannot be empty');
         }
-        
+
         // run query:
         // using fetch style as `PDO::FETCH_ASSOC` so supplied `$args` can
         // be merged with result set
@@ -204,7 +198,7 @@ trait PDOWrapperTrait
             if (empty($row)) {
                 continue;
             }
-            
+
             // columns (in order of the result set) + additional `$args` supplied
             $newInstanceArgs = $argsOverwrite
                 ? $args
@@ -217,7 +211,7 @@ trait PDOWrapperTrait
 
         return $objs;
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -235,7 +229,7 @@ trait PDOWrapperTrait
             $style | PDO::FETCH_GROUP
         );
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -244,15 +238,17 @@ trait PDOWrapperTrait
     public function run(string $query, array $args = []): PDOStatement
     {
         $this->connect();
-        
+
+        $args = $this->boolArgsToInt($args);
+
         $sth = $this->getPdo()->prepare($query);
         $bindVals = $this->queryBindValues($sth, $query, $args);
 
-        $sth->execute((empty($args) || $bindVals) ? null : $args);
+        $sth->execute($bindVals ? null : $args);
 
         return $sth;
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -263,7 +259,7 @@ trait PDOWrapperTrait
         $this->connect();
         return $this->getPdo()->query($statement);
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -274,7 +270,7 @@ trait PDOWrapperTrait
         $this->connect();
         return $this->getPdo()->errorCode();
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -285,7 +281,7 @@ trait PDOWrapperTrait
         $this->connect();
         return $this->getPdo()->errorInfo();
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -295,7 +291,7 @@ trait PDOWrapperTrait
     {
         $this->getPdo()->setAttribute($prop, $val);
     }
-    
+
     /**
      * {@inheritdoc}
      *
@@ -321,7 +317,7 @@ trait PDOWrapperTrait
         int $fetchStyle = PDO::FETCH_BOTH
     ) {
         $sth = $this->run($query, $args);
-        
+
         $fetchMethod = "fetch{$fetchMethodSuffix}";
 
         if (($result = $sth->{$fetchMethod}($fetchStyle)) === false) {
@@ -333,8 +329,8 @@ trait PDOWrapperTrait
 
         return $result;
     }
-    
-    
+
+
     /**
      * Bind values to corresponding data types for PDO execution.
      * (Must be called after PDO's prepare() and before execute()).
@@ -361,10 +357,10 @@ trait PDOWrapperTrait
         ) {
             return false;
         }
-        
+
         foreach ($args as $key => $value) {
             $param = false;
-            
+
             if (empty($value)) {
                 $value = null;
                 $param = PDO::PARAM_NULL;
@@ -390,7 +386,20 @@ trait PDOWrapperTrait
                 );
             }
         }
-        
+
         return true;
+    }
+
+    private function boolArgsToInt(array $args): array
+    {
+        // fix php bug: SQLSTATE[22P02]: Invalid text representation: 7 ERROR: invalid input syntax for type boolean: ""
+        // workaround: convert booleans to int
+        array_walk_recursive($args, function (&$value) {
+            if (is_bool($value)) {
+                $value = (int)$value;
+            }
+        });
+
+        return $args;
     }
 }
