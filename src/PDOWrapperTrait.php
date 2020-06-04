@@ -135,7 +135,6 @@ trait PDOWrapperTrait
      * {@inheritdoc}
      *
      * @throws RuntimeException
-     * @throws \ReflectionException
      *
      * @see PdoInterface::fetchObject()
      */
@@ -304,7 +303,7 @@ trait PDOWrapperTrait
      *
      * @param string $query
      * @param array $args An array of arguments for query placeholders (such as :val, ?).
-     * @param $fetchMethodSuffix string 'All', 'Column', or ''.
+     * @param string $fetchMethodSuffix 'All', 'Column', or ''.
      *
      * @param int $fetchStyle
      * @return mixed Row(s) returned by the query, or an empty array (or boolean false)
