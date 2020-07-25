@@ -7,6 +7,8 @@
  * @license   https://opensource.org/licenses/MIT MIT License
  */
 
+declare(strict_types=1);
+
 namespace Designcise\PDO;
 
 use PDO;
