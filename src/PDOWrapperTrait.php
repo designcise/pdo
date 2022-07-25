@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Designcise\PDO;
 
 use PDO;
+use PDOException;
 use PDOStatement;
 use RuntimeException;
 
@@ -74,10 +75,10 @@ trait PDOWrapperTrait
      *
      * @see PdoInterface::commit()
      */
-    public function commit(): void
+    public function commit(): bool
     {
         $this->connect();
-        $this->getPdo()->commit();
+        return $this->getPdo()->commit();
     }
 
     /**
@@ -85,10 +86,10 @@ trait PDOWrapperTrait
      *
      * @see PdoInterface::rollback()
      */
-    public function rollback(): void
+    public function rollback(): bool
     {
         $this->connect();
-        $this->getPdo()->rollBack();
+        return $this->getPdo()->rollBack();
     }
 
 
@@ -290,7 +291,7 @@ trait PDOWrapperTrait
      */
     public function setAttribute(int $prop, $val): bool
     {
-        $this->getPdo()->setAttribute($prop, $val);
+        return $this->getPdo()->setAttribute($prop, $val);
     }
 
     /**
@@ -316,7 +317,7 @@ trait PDOWrapperTrait
         array $args = [],
         string $fetchMethodSuffix = '',
         int $fetchStyle = PDO::FETCH_BOTH
-    ) {
+    ): mixed {
         $sth = $this->run($query, $args);
 
         $fetchMethod = "fetch{$fetchMethodSuffix}";
@@ -383,7 +384,7 @@ trait PDOWrapperTrait
                 $sth->bindValue(
                     (((is_numeric($key)) ? '' : ':') . $key),
                     $value,
-                    (string)$param
+                    (string) $param
                 );
             }
         }
