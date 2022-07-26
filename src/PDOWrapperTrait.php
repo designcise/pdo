@@ -384,7 +384,7 @@ trait PDOWrapperTrait
                 $sth->bindValue(
                     (((is_numeric($key)) ? '' : ':') . $key),
                     $value,
-                    (string) $param
+                    $param,
                 );
             }
         }
