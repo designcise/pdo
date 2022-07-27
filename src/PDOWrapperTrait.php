@@ -363,7 +363,7 @@ trait PDOWrapperTrait
         foreach ($args as $key => $value) {
             $param = false;
 
-            if (empty($value)) {
+            if (! isset($value) || (is_array($value) && empty($value))) {
                 $value = null;
                 $param = PDO::PARAM_NULL;
             } elseif (is_numeric($value)) {
